@@ -1,5 +1,6 @@
-// controllers/userController.js
 const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+const emailService = require("../utils/emailService");
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
@@ -45,6 +46,18 @@ exports.createUser = async (req, res) => {
   try {
     const newUser = await User.create(req.body);
 
+    // Generate JWT token with the user's email
+    const token = jwt.sign(
+      { email: newUser.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      }
+    );
+
+    // Pass the token to the email service
+    await emailService.sendWelcomeEmail(token);
+
     res.status(201).json({
       status: "success",
       data: {
@@ -54,50 +67,7 @@ exports.createUser = async (req, res) => {
   } catch (err) {
     res.status(404).json({
       status: "fail",
-      message: err,
-    });
-  }
-};
-
-// Update a user by ID
-exports.updateUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        user,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
-  }
-};
-
-// Delete a user by ID
-exports.deleteUser = async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.params.id);
-
-    res.status(204).json({
-      status: "success",
-      data: null,
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
+      message: err.message,
     });
   }
 };

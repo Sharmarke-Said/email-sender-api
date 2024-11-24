@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "name is required"],
   },
-  emial: {
+  email: {
     type: String,
     required: [true, "email is required"],
   },
@@ -13,4 +13,4 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-model.exports = User;
+module.exports = User;
